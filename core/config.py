@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from pathlib import Path
+from pydantic import BaseModel
 
 # базовая директория где весь проект
 BASE_DIR = Path(__file__).parent.parent
@@ -7,12 +8,16 @@ BASE_DIR = Path(__file__).parent.parent
 DB_PATH = BASE_DIR / "db.sqlite3"
 
 
+class DbSettings(BaseModel):
+    # путь к файлу с бд
+    url: str = f"sqlite+aiosqlite:///{DB_PATH}"
+    # echo: bool = True
+    echo: bool = False
+
+
 class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
-    # путь к файлу с бд
-    db_url: str = f"sqlite+aiosqlite:///{DB_PATH}"
-    db_echo: bool = True
-    # db_echo: bool = False
+    db: DbSettings = DbSettings()
 
 
 settings = Settings()
