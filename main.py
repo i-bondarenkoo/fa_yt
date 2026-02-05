@@ -11,15 +11,16 @@ from core.config import settings
 
 # запустить создание новой БД и таблиц при запуске
 # функция генератор
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # создание новой БД
-    async with db_helper.engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    yield
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # создание новой БД
+#     async with db_helper.engine.begin() as connection:
+#         await connection.run_sync(Base.metadata.create_all)
+#     yield
 
 
-app = FastAPI(lifespan=lifespan)
+# app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 app.include_router(
     router_v1,
     prefix=settings.api_v1_prefix,
