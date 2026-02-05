@@ -1,6 +1,11 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String, Text
 from core.models.base import Base
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core.models.user import User
 
 
 class Post(Base):
@@ -13,3 +18,5 @@ class Post(Base):
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
     )
+
+    user: Mapped["User"] = relationship("User", back_populates="posts")
