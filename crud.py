@@ -3,6 +3,8 @@ from core.models.db_helper import db_helper
 from core.models.user import User
 from core.models.profile import Profile
 from core.models.post import Post
+from core.models.order import Order
+from core.models.product import Product
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.engine import Result
@@ -123,40 +125,58 @@ async def get_profiles_with_users_and_users_with_posts(session: AsyncSession):
         print(profile.first_name, profile.user)
         print(profile.user.posts)
 
+async def create_order(session: AsyncSession, promocode: str | None = None):
+    order = Order(
+        promocode=promocode,
+    )
+    session.add(order)
+    await session.commit()
+    return order    
+
+async def main_relations(session: AsyncSession):
+    #     user_john = await create_user(session=session, username="john")
+    #     user_stepa = await create_user(session=session, username="stepa")
+    #     user_alice = await create_user(session=session, username="alice")
+    # await get_usr_by_username(session=session, username="123")
+    # user_stepa = await get_usr_by_username(session=session, username="stepa")
+    # await create_user_profile(
+    #     session=session,
+    #     user_id=user_stepa.id,
+    #     first_name="Stepa",
+    # )
+    # await create_user_profile(
+    #     session=session,
+    #     user_id=user_john.id,
+    #     first_name="john",
+    # )
+    # await show_users_with_profiles(session=session)
+    # await create_posts(
+    #     session,
+    #     user_john.id,
+    #     "SQLA 2.0",
+    #     "SQLA Joins",
+    # )
+    # await create_posts(
+    #     session,
+    #     user_stepa.id,
+    #     "FastAPI intro",
+    # )
+    # await get_users_with_posts(session=session)
+    # await get_posts_with_authors(session=session)
+    # await get_users_with_posts_and_profiles(session=session)
+    # await get_profiles_with_users_and_users_with_posts(session=session)
+
+
+async def demo_m2m(session: AsyncSession):
+    order = await create_order(session)
+    order2 = await create_order(session=session, promocode='promo')
+    
+
 
 async def main():
     async with db_helper.session_factory() as session:
-        #     user_john = await create_user(session=session, username="john")
-        #     user_stepa = await create_user(session=session, username="stepa")
-        #     user_alice = await create_user(session=session, username="alice")
-        # await get_usr_by_username(session=session, username="123")
-        # user_stepa = await get_usr_by_username(session=session, username="stepa")
-        # await create_user_profile(
-        #     session=session,
-        #     user_id=user_stepa.id,
-        #     first_name="Stepa",
-        # )
-        # await create_user_profile(
-        #     session=session,
-        #     user_id=user_john.id,
-        #     first_name="john",
-        # )
-        # await show_users_with_profiles(session=session)
-        # await create_posts(
-        #     session,
-        #     user_john.id,
-        #     "SQLA 2.0",
-        #     "SQLA Joins",
-        # )
-        # await create_posts(
-        #     session,
-        #     user_stepa.id,
-        #     "FastAPI intro",
-        # )
-        # await get_users_with_posts(session=session)
-        # await get_posts_with_authors(session=session)
-        # await get_users_with_posts_and_profiles(session=session)
-        await get_profiles_with_users_and_users_with_posts(session=session)
+        # await main_relations(session)
+        await demo_m2m(session)
 
 
 if __name__ == "__main__":
