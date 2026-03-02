@@ -8,23 +8,35 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
     OAuth2PasswordBearer,
 )
+from api_v1.demo_auth.helpers import (
+    create_access_token,
+    create_refresh_token,
+    TOKEN_TYPE_FIELD,
+    ACCESS_TOKEN_TYPE,
+)
 from pydantic import BaseModel
 from jwt.exceptions import InvalidTokenError
+
+http_bearer = HTTPBearer(auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/demo-auth/jwt/login/",
+)
 
 router = APIRouter(
     prefix="/jwt",
     tags=["JWT"],
-)
-
-# http_bearer = HTTPBearer()
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/demo-auth/jwt/login/",
+    dependencies=[
+        Depends(
+            http_bearer,
+        )
+    ],
 )
 
 
 class TokenInfo(BaseModel):
     access_token: str
-    token_type: str
+    refresh_token: str
+    token_type: str = "Bearer"
 
 
 john = UserSchema(
@@ -67,10 +79,9 @@ def validate_auth_user(
 
 
 def get_current_token_payload(
-    # credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
     token: strclass = Depends(oauth2_scheme),
-) -> UserSchema:
-    # token = credentials.credentials
+) -> dict:
+
     try:
         payload = auth_utils.decode_jwt(
             token=token,
@@ -87,6 +98,12 @@ def get_current_token_payload(
 def get_current_auth_user(
     payload: dict = Depends(get_current_token_payload),
 ):
+    token_type = payload.get(TOKEN_TYPE_FIELD)
+    if token_type != ACCESS_TOKEN_TYPE:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"неправильный тип токена {token_type!r} ожидается {ACCESS_TOKEN_TYPE!r}",
+        )
     username: str | None = payload.get("sub")
     if user := users_db.get(username):
         return user
@@ -111,16 +128,11 @@ def get_current_active_auth_user(
 def auth_user_issue_jwt(
     user: UserSchema = Depends(validate_auth_user),
 ):
-    jwt_payload = {
-        # sub - кому принадлежит токен
-        "sub": user.username,
-        "username": user.username,
-        "email": user.email,
-    }
-    token = auth_utils.encode_jwt(jwt_payload)
+    access_token = create_access_token(user)
+    refresh_token = create_refresh_token(user)
     return TokenInfo(
-        access_token=token,
-        token_type="Bearer",
+        access_token=access_token,
+        refresh_token=refresh_token,
     )
 
 
