@@ -1,6 +1,6 @@
 from users.schemas import UserSchema
-from auth import utils as auth_utils
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+
+from fastapi import APIRouter, Depends
 from fastapi.security import (
     HTTPBearer,
 )
